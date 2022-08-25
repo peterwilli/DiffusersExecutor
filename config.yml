@@ -1,0 +1,4 @@
+jtype: Txt2ImgExecutor
+metas:
+  py_modules:
+    - stable_diffusion_executor/__init__.py
