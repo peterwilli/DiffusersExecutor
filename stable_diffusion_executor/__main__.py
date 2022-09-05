@@ -38,11 +38,10 @@ def serve_test(cfg):
     from jina import Document
     import time
     with _serve(cfg) as f:
-        input = Document(text="Glowing blue Blockbuster store in the middle of the night, just before closing time.")
-        generated_doc = f.post(on = '/txt2img', inputs = input, on_done = print)
-        while True:
-            progress_doc = f.post(on = '/txt2img_progress', inputs = input)
-            time.sleep(1)
+        input = Document(text="A man in a dragon onesie jumping on his yacht")
+        generated_da = f.post(on = '/stable_diffusion/txt2img', inputs = input)
+        generated_da[0].load_uri_to_image_tensor()
+        generated_da[0].save_image_tensor_to_file('serve_test_result.png')
 
 def serve(cfg):
     with _serve(cfg) as f:

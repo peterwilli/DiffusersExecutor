@@ -11,7 +11,7 @@ setup(
     packages=['stable_diffusion_executor'],
     install_requires=[
         'torch>=1.6',
-        'diffusers>=0.2',
+        'diffusers',
         'jina>=3.7',
         'transformers>=4.21'
     ],
