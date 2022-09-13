@@ -1,0 +1,8 @@
+jtype: Img2ImgExecutor
+py_modules:
+  - executor/__init__.py
+metas:
+  name: Img2ImgExecutor
+  description: img2img for Thingy
+  url: https://github.com/peterwilli/DiffusersExecutor
+  keywords: ['stable-diffusion', 'img2img', 'thingy', 'discord']

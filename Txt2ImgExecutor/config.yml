@@ -1,0 +1,8 @@
+jtype: Txt2ImgExecutor
+py_modules:
+  - executor/__init__.py
+metas:
+  name: Txt2ImgExecutor
+  description: txt2img for Thingy
+  url: https://github.com/peterwilli/DiffusersExecutor
+  keywords: ['stable-diffusion', 'txt2img', 'thingy', 'discord']
