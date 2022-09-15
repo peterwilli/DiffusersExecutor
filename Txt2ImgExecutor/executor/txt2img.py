@@ -2,7 +2,7 @@ from torch import autocast
 from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler
 from jina import Executor, requests, DocumentArray, Document
 from typing import Dict
-from .utils import free_memory, download_get_sd_model
+from .utils import free_memory
 
 def _txt2img(docs, parameters):
     lms = LMSDiscreteScheduler(
@@ -12,7 +12,8 @@ def _txt2img(docs, parameters):
     )
 
     pipe = StableDiffusionPipeline.from_pretrained(
-        download_get_sd_model(),
+        "CompVis/stable-diffusion-v1-4",
+        use_auth_token=parameters['hf_auth_token'],
         scheduler=lms
     ).to("cuda")
 
@@ -22,7 +23,7 @@ def _txt2img(docs, parameters):
 
     image = None
     with autocast("cuda"):
-        image = pipe(docs[0].text, guidance_scale=7.5, num_inference_steps=int(parameters['steps']))["sample"][0]  
+        image = pipe(docs[0].text, guidance_scale=parameters["guidance_scale"], num_inference_steps=int(parameters['steps']))["sample"][0]  
 
     return Document().load_pil_image_to_datauri(image)
 

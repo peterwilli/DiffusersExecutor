@@ -3,4 +3,3 @@ jina>=3.7
 transformers>=4.21
 torchvision
 scipy
-gdown

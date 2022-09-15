@@ -24,7 +24,7 @@ from diffusers import (
 )
 from diffusers.pipelines.stable_diffusion import StableDiffusionSafetyChecker
 from transformers import CLIPFeatureExtractor, CLIPTextModel, CLIPTokenizer
-from .utils import free_memory, download_get_sd_model
+from .utils import free_memory
 
 tensor_to_pil_image = T.ToPILImage()
 
@@ -32,7 +32,8 @@ def _img2img(docs, parameters):
     scheduler = DDIMScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule="scaled_linear", clip_sample=False, set_alpha_to_one=False)
     doc = docs[0]
     pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
-        download_get_sd_model(),
+        "CompVis/stable-diffusion-v1-4",
+        use_auth_token=parameters['hf_auth_token'],
         scheduler=scheduler
     ).to("cuda")
 
