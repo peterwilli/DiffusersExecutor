@@ -1,0 +1,8 @@
+jtype: MagicPromptExecutor
+py_modules:
+  - executor/__init__.py
+metas:
+  name: MagicPromptExecutor
+  description: "Magic Prompts (developed for Thingy), optimized for CPU inference. Original model by: Gustavosta"
+  url: https://github.com/peterwilli/DiffusersExecutor
+  keywords: ['stable-diffusion', 'magic-prompt', 'auto-completion', 'txt2img']

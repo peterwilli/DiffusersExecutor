@@ -23,3 +23,10 @@ executors:
     uses_metas:
       py_modules:
         - Img2ImgExecutor.executor
+  - name: magic_prompt
+    uses: MagicPromptExecutor
+    replicas: 1
+    floating: false
+    uses_metas:
+      py_modules:
+        - MagicPromptExecutor.executor
