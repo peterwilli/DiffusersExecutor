@@ -29,12 +29,18 @@ global_object = {
     'pipe': None
 }
 
+def next_divisible(n, d):
+    divisor = n % d
+    return n - divisor
+
 def _txt2img(docs, parameters):
     generator = torch.manual_seed(int(parameters['seed']))
     if global_object['pipe'] is None:
         global_object['pipe'] = get_pipe(parameters)
     pipe = global_object['pipe']
-    image = pipe(docs[0].text, guidance_scale=parameters["guidance_scale"], num_inference_steps=int(parameters['steps'])).images[0]  
+    width = next_divisible(int(parameters['size'][0]), 8)
+    height = next_divisible(int(parameters['size'][1]), 8)
+    image = pipe(docs[0].text, width = width, height = height, guidance_scale=parameters["guidance_scale"], num_inference_steps=int(parameters['steps'])).images[0]  
     return Document().load_pil_image_to_datauri(image)
 
 class Txt2ImgExecutor(Executor):

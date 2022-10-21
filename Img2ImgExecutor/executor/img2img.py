@@ -44,6 +44,10 @@ global_object = {
     'pipe': None
 }
 
+def next_divisible(n, d):
+    divisor = n % d
+    return n - divisor
+
 def _img2img(docs, parameters):
     if global_object['pipe'] is None:
         global_object['pipe'] = get_pipe(parameters)
@@ -52,7 +56,13 @@ def _img2img(docs, parameters):
     doc = docs[0]
     doc.load_uri_to_image_tensor()
     image = tensor_to_pil_image(doc.tensor).convert("RGB")
-    image = image.resize((512, 512))    
+    width = 512
+    height = 512
+    if image.size[0] > image.size[1]:
+        height = next_divisible(int(width * image.size[1] / image.size[0]), 8)
+    else:
+        width = next_divisible(int(height * image.size[0] / image.size[1]), 8)
+    image = image.resize((width, height))    
     image = pipe(prompt=doc.text, strength=parameters["strength"], init_image = image, guidance_scale=parameters["guidance_scale"], num_inference_steps=int(parameters['steps'])).images[0]
     return Document().load_pil_image_to_datauri(image)
 
