@@ -47,7 +47,6 @@ class ModelManager:
         eos_token_id = self.tokenizer.eos_token_id
         batch_size = input_ids.shape[0]
         all_token_ids = input_ids
-        is_in_message = False
         for step in range(self.max_length):
             inputs = {}
             inputs['attention_mask'] = attention_mask
@@ -58,32 +57,37 @@ class ModelManager:
             if do_sample:
                 word_count = 10
                 next_tokens = np.argpartition(-next_token_logits, word_count).flatten()[:word_count]
-                if is_in_message:
-                    chances = next_token_logits.flatten()[next_tokens]
-                    chances = self.normalize(chances)
-                    chances_list = []
-                    for i, c in enumerate(chances):
-                        chances_list.append({
-                            'c': c,
-                            'i': next_tokens[i]
-                        })
-                    chances_list.sort(key=lambda x: x['c'], reverse=True)
-                    new_chances = np.zeros(10, dtype = np.float32)
-                    self.word_chance(new_chances, 0.45)
-                    for i in range(new_chances.shape[0]):
-                        new_chances[i] = new_chances[i] * chances_list[i]['c']
-                    selection = random.choices(chances_list, weights=new_chances, k=1)[0]['i']
-                    next_tokens = np.array([selection])
-                else:
-                    next_tokens = np.argmax(next_token_logits, axis=-1)
-                if '"' in self.tokenizer.decode(next_tokens):
-                    is_in_message = not is_in_message
+                chances = next_token_logits.flatten()[next_tokens]
+                chances = self.normalize(chances)
+                chances_list = []
+                for i, c in enumerate(chances):
+                    chances_list.append({
+                        'c': c,
+                        'i': next_tokens[i]
+                    })
+                chances_list.sort(key=lambda x: x['c'], reverse=True)
+                new_chances = np.zeros(10, dtype = np.float32)
+                self.word_chance(new_chances, 0.45)
+                for i in range(new_chances.shape[0]):
+                    new_chances[i] = new_chances[i] * chances_list[i]['c']
+                selection = random.choices(chances_list, weights=new_chances, k=1)[0]['i']
+                next_tokens = np.array([selection])
             else:
                 next_tokens = np.argmax(next_token_logits, axis=-1)
+
+            if '"' in self.tokenizer.decode(next_tokens):
+                is_in_message = not is_in_message
+            
+            if eos_token_id in next_tokens:
+                break
+            
             all_token_ids = np.concatenate((all_token_ids, np.expand_dims(next_tokens, -1)), axis=-1)
             # Update input_ids, attention_mask and past
             input_ids = all_token_ids
             attention_mask = np.ones((batch_size, 1), dtype=np.int64)
-            if eos_token_id in next_tokens:
-                break
-        return self.tokenizer.decode(all_token_ids[0], skip_special_tokens=False)
+            
+        text_result = self.tokenizer.decode(all_token_ids[0], skip_special_tokens=False)
+        if True or len(all_token_ids[0]) == self.max_length:
+            # Strip last word as it's likely incomplete
+            text_result = text_result.rsplit(' ', 1)[0]
+        return text_result

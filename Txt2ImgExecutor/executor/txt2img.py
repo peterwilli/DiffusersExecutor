@@ -3,28 +3,29 @@ from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler
 from jina import Executor, requests, DocumentArray, Document
 from typing import Dict
 from .utils import free_memory
+import torch
 
 def _txt2img(docs, parameters):
+    generator = torch.manual_seed(int(parameters['seed']))
     lms = LMSDiscreteScheduler(
         beta_start=0.00085, 
         beta_end=0.012, 
         beta_schedule="scaled_linear"
     )
-
+    
+    model_id = "runwayml/stable-diffusion-v1-5"
     pipe = StableDiffusionPipeline.from_pretrained(
-        "CompVis/stable-diffusion-v1-4",
+        model_id,
         use_auth_token=parameters['hf_auth_token'],
-        scheduler=lms
+        scheduler=lms,
+        revision="fp16",
+        torch_dtype=torch.float16
     ).to("cuda")
 
     def dummy(images, **kwargs):
         return images, False
     pipe.safety_checker = dummy
-
-    image = None
-    with autocast("cuda"):
-        image = pipe(docs[0].text, guidance_scale=parameters["guidance_scale"], num_inference_steps=int(parameters['steps']))["sample"][0]  
-
+    image = pipe(docs[0].text, guidance_scale=parameters["guidance_scale"], num_inference_steps=int(parameters['steps'])).images[0]  
     return Document().load_pil_image_to_datauri(image)
 
 class Txt2ImgExecutor(Executor):

@@ -15,7 +15,7 @@ class MagicPromptExecutor(Executor):
     @requests(on='/magic_prompt/stable_diffusion')
     def generate_prompt(self, docs: DocumentArray, parameters: Dict, **kwargs):
         prompt = docs[0].text
-        reply = model_manager.magic_prompt(prompt, True)
-        return DocumentArray(
-            Document(text = reply)
-        )
+        amount = int(parameters['amount'])
+        return DocumentArray([
+            Document(text = model_manager.magic_prompt(prompt, True)) for _ in range(0, amount)
+        ])
