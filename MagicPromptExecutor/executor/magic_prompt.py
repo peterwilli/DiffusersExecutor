@@ -16,6 +16,7 @@ class MagicPromptExecutor(Executor):
     def generate_prompt(self, docs: DocumentArray, parameters: Dict, **kwargs):
         prompt = docs[0].text
         amount = int(parameters['amount'])
+        variation = parameters['variation']
         return DocumentArray([
-            Document(text = model_manager.magic_prompt(prompt, True)) for _ in range(0, amount)
+            Document(text = model_manager.magic_prompt(prompt, variation)) for _ in range(0, amount)
         ])

@@ -26,9 +26,7 @@ from .utils import free_memory
 
 tensor_to_pil_image = T.ToPILImage()
 
-def _img2img(docs, parameters):
-    generator = torch.manual_seed(int(parameters['seed']))
-    doc = docs[0]
+def get_pipe(parameters):
     model_id = "runwayml/stable-diffusion-v1-5"
     pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
         model_id,
@@ -40,7 +38,18 @@ def _img2img(docs, parameters):
     def dummy(images, **kwargs):
         return images, False
     pipe.safety_checker = dummy
+    return pipe
 
+global_object = {
+    'pipe': None
+}
+
+def _img2img(docs, parameters):
+    if global_object['pipe'] is None:
+        global_object['pipe'] = get_pipe(parameters)
+    pipe = global_object['pipe']
+    generator = torch.manual_seed(int(parameters['seed']))
+    doc = docs[0]
     doc.load_uri_to_image_tensor()
     image = tensor_to_pil_image(doc.tensor).convert("RGB")
     image = image.resize((512, 512))    

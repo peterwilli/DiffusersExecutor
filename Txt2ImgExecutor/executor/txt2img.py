@@ -5,14 +5,12 @@ from typing import Dict
 from .utils import free_memory
 import torch
 
-def _txt2img(docs, parameters):
-    generator = torch.manual_seed(int(parameters['seed']))
+def get_pipe(parameters):
     lms = LMSDiscreteScheduler(
         beta_start=0.00085, 
         beta_end=0.012, 
         beta_schedule="scaled_linear"
     )
-    
     model_id = "runwayml/stable-diffusion-v1-5"
     pipe = StableDiffusionPipeline.from_pretrained(
         model_id,
@@ -25,6 +23,17 @@ def _txt2img(docs, parameters):
     def dummy(images, **kwargs):
         return images, False
     pipe.safety_checker = dummy
+    return pipe
+
+global_object = {
+    'pipe': None
+}
+
+def _txt2img(docs, parameters):
+    generator = torch.manual_seed(int(parameters['seed']))
+    if global_object['pipe'] is None:
+        global_object['pipe'] = get_pipe(parameters)
+    pipe = global_object['pipe']
     image = pipe(docs[0].text, guidance_scale=parameters["guidance_scale"], num_inference_steps=int(parameters['steps'])).images[0]  
     return Document().load_pil_image_to_datauri(image)
 
