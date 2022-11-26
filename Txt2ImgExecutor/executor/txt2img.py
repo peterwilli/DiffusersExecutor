@@ -1,28 +1,18 @@
 from torch import autocast
-from diffusers import StableDiffusionPipeline, LMSDiscreteScheduler
 from jina import Executor, requests, DocumentArray, Document
 from typing import Dict
 from .utils import free_memory
 import torch
+from diffusers import DiffusionPipeline, EulerDiscreteScheduler
 
 def get_pipe(parameters):
-    lms = LMSDiscreteScheduler(
-        beta_start=0.00085, 
-        beta_end=0.012, 
-        beta_schedule="scaled_linear"
-    )
-    model_id = "runwayml/stable-diffusion-v1-5"
-    pipe = StableDiffusionPipeline.from_pretrained(
-        model_id,
-        use_auth_token=parameters['hf_auth_token'],
-        scheduler=lms,
-        revision="fp16",
-        torch_dtype=torch.float16
-    ).to("cuda")
-
-    def dummy(images, **kwargs):
-        return images, False
-    pipe.safety_checker = dummy
+    repo_id = "stabilityai/stable-diffusion-2"
+    device = "cuda"
+    scheduler = EulerDiscreteScheduler.from_pretrained(repo_id, subfolder="scheduler", prediction_type="v_prediction")
+    pipe = DiffusionPipeline.from_pretrained(repo_id, use_auth_token=parameters['hf_auth_token'], torch_dtype=torch.float16, revision="fp16", scheduler=scheduler)
+    pipe = pipe.to(device)
+    if 'no_nsfw_filter' in parameters:
+        pipe.safety_checker = None
     return pipe
 
 global_object = {
@@ -41,6 +31,7 @@ def _txt2img(docs, parameters):
     width = next_divisible(int(parameters['size'][0]), 8)
     height = next_divisible(int(parameters['size'][1]), 8)
     image = pipe(docs[0].text, width = width, height = height, guidance_scale=parameters["guidance_scale"], num_inference_steps=int(parameters['steps'])).images[0]  
+    print("image", image)
     return Document().load_pil_image_to_datauri(image)
 
 class Txt2ImgExecutor(Executor):

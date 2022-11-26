@@ -1,0 +1,8 @@
+jtype: ThingyQueueExecutor
+py_modules:
+  - executor/__init__.py
+metas:
+  name: ThingyQueueExecutor
+  description: Thingy Queue Executor (For Thingy Queue Items)
+  url: https://github.com/peterwilli/thingy
+  keywords: ['stable-diffusion', 'txt2img', 'thingy', 'discord']

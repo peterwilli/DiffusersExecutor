@@ -17,27 +17,22 @@ from diffusers import (
     AutoencoderKL,
     DiffusionPipeline,
     UNet2DConditionModel,
-    StableDiffusionImg2ImgPipeline,
+    DiffusionPipeline,
     LMSDiscreteScheduler
 )
-from diffusers.pipelines.stable_diffusion import StableDiffusionSafetyChecker
 from transformers import CLIPFeatureExtractor, CLIPTextModel, CLIPTokenizer
 from .utils import free_memory
 
 tensor_to_pil_image = T.ToPILImage()
 
 def get_pipe(parameters):
-    model_id = "runwayml/stable-diffusion-v1-5"
-    pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
-        model_id,
-        use_auth_token=parameters['hf_auth_token'],
-        revision="fp16",
-        torch_dtype=torch.float16
-    ).to("cuda")
-
-    def dummy(images, **kwargs):
-        return images, False
-    pipe.safety_checker = dummy
+    repo_id = "stabilityai/stable-diffusion-2"
+    device = "cuda"
+    scheduler = EulerDiscreteScheduler.from_pretrained(repo_id, subfolder="scheduler", prediction_type="v_prediction")
+    pipe = DiffusionImg2ImgPipeline.from_pretrained(repo_id, use_auth_token=parameters['hf_auth_token'], torch_dtype=torch.float16, revision="fp16", scheduler=scheduler)
+    pipe = pipe.to(device)
+    if 'no_nsfw_filter' in parameters:
+        pipe.safety_checker = None
     return pipe
 
 global_object = {
